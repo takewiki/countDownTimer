@@ -16,7 +16,7 @@ ui <- fluidPage(
     actionButton('start','开始'),
     actionButton('stop','结束'),
     
-    numericInput('seconds','超时设置:',value=30,min=0,max=99999,step=1),
+    numericInput('seconds','超时设置:',value=15,min=0,max=99999,step=1),
     textOutput('timeleft'),
     htmlOutput('timeleft2'),
     textInput('text','自回复内容'),
@@ -28,7 +28,7 @@ server <- function(input, output, session) {
     
     # Initialize the timer, 10 seconds, not active.
    # intial_sec <- reactive({input$seconds})
-    timer <- reactiveVal(30)
+    timer <- reactiveVal(15)
     active <- reactiveVal(FALSE)
     
     # Output the time left.
