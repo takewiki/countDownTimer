@@ -9,15 +9,17 @@
 
 library(lubridate)
 library(shiny)
+library(tsdo)
 
 ui <- fluidPage(
     hr(),
-    actionButton('start','Start'),
-    actionButton('stop','Stop'),
-    actionButton('reset','Reset'),
-    numericInput('seconds','Seconds:',value=10,min=0,max=99999,step=1),
+    actionButton('start','开始'),
+    actionButton('stop','结束'),
+    
+    numericInput('seconds','超时设置:',value=30,min=0,max=99999,step=1),
     textOutput('timeleft'),
-    textInput('text','input'),
+    htmlOutput('timeleft2'),
+    textInput('text','自回复内容'),
     actionButton('btn','ok')
     
 )
@@ -25,13 +27,27 @@ ui <- fluidPage(
 server <- function(input, output, session) {
     
     # Initialize the timer, 10 seconds, not active.
-    timer <- reactiveVal(10)
+   # intial_sec <- reactive({input$seconds})
+    timer <- reactiveVal(30)
     active <- reactiveVal(FALSE)
     
     # Output the time left.
     output$timeleft <- renderText({
-        paste("Time left: ", seconds_to_period(timer()))
+        paste("已用时: ", seconds_as_Timetext(input$seconds-timer()),"倒计时: ", seconds_as_Timetext(timer()))
     })
+    
+   
+    
+    output$timeleft2 <- renderText({ 
+        
+        if(timer() >6){
+            NULL
+        }else{
+            paste("最后倒计时","<font color=\"#FF0000\"><b>", seconds_as_Timetext(timer()), "</b></font>") 
+            
+        }
+       
+        })
     
     # observer that invalidates every second. If timer is active, decrease by one.
     observe({
@@ -43,9 +59,12 @@ server <- function(input, output, session) {
                 if(timer()<1)
                 {
                     active(FALSE)
+                    updateTextInput(session,'text',value = '超时自动回复内容测试')
                     showModal(modalDialog(
-                        title = "Important message",
-                        "Countdown completed!"
+                        title = "超时提醒",
+                        "时间已到", footer = column(shiny::modalButton('确认'),
+                                       
+                                       width=12)
                     ))
                 }
             }
@@ -53,9 +72,17 @@ server <- function(input, output, session) {
     })
     
     # observers for actionbuttons
-    observeEvent(input$start, {active(TRUE)})
+    observeEvent(input$start, {
+        timer(input$seconds)
+        active(TRUE)
+        })
     observeEvent(input$stop, {active(FALSE)})
-    observeEvent(input$reset, {timer(input$seconds)})
+    # observeEvent(input$reset, {timer(input$seconds)})
+    # observeEvent(input$end,{
+    #     active(FALSE)
+    #     timer(input$seconds)
+    #     
+    # })
     observeEvent(input$btn,{
         updateTextInput(session,'text',value = paste0(input$text,"A"))
     })
